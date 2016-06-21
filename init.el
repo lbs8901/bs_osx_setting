@@ -31,7 +31,7 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Code:
+;;loaCode:
 (defvar current-user
       (getenv
        (if (equal system-type 'windows-nt) "USERNAME" "USER")))
@@ -132,9 +132,10 @@ by Prelude.")
  ;; greet the use with some useful tip
  (run-at-time 5 nil 'prelude-tip-of-the-day))
 
-;disable backup
+;;disable backup
 (setq backup-inhibited t)
-;disable auto save
+(setq make-backup-files nil)
+;;disable auto save
 (setq auto-save-default nil)
 
 ;; set keys for Apple keyboard, for emacs in OS X
@@ -146,17 +147,47 @@ by Prelude.")
 (require 'helm-config)
 (require 'dirtree)
 (require 'helm-projectile)
-;(require 'nlinum)
+;;(require 'nlinum)
 (require 'highlight-current-line)
 
+;; phpdocumentor
+;; (load "~/.emacs.d/plugins/phpdocumentor/phpdocumentor.el")
+
+(load "~/.emacs.d/custom_el/custom.el")
+(load "~/.emacs.d/custom_el/php-doc.el")
+
 (autoload 'dirtree "dirtree" "Add directory to tree view" t)
-;(global-nlinum-mode nil)
+;;(global-nlinum-mode nil)
 (highlight-current-line-on t)
 (global-set-key "\C-o" 'dirtree-show)
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x p") 'helm-projectile)
 (highlight-current-line-set-bg-color "#222")
 (setq-default truncate-lines 1)
+
+;; autoremove final white space on save
+(global-whitespace-cleanup-mode t)
+(add-hook 'local-write-file-hooks
+          (lambda ()
+            (delete-trailing-whitespace)
+            nil))
+
+;; context-aware auto-completion
+(setq web-mode-ac-sources-alist
+      '(("php" . (ac-source-yasnippet ac-source-php-auto-yasnippets))
+        ("html" . (ac-source-emmet-html-aliases ac-source-emmet-html-snippets))
+        ("css" . (ac-source-css-property ac-source-emmet-css-snippets))))
+
+(add-hook 'web-mode-before-auto-complete-hooks
+          '(lambda ()
+             (let ((web-mode-cur-language
+                    (web-mode-language-at-pos)))
+               (if (string= web-mode-cur-language "php")
+                   (yas-activate-extra-mode 'php-mode)
+                 (yas-deactivate-extra-mode 'php-mode))
+               (if (string= web-mode-cur-language "css")
+                   (setq emmet-use-css-transform t)
+                (setq emmet-use-css-transform nil)))))
 
 ;; tab indent set
 (setq-default c-basic-offset 4
@@ -165,20 +196,37 @@ by Prelude.")
               indent-tabs-mode nil)
 
 (setq-default tab-always-indent nil)
-
+(setq-default c-always-indent nil)
 ;; scroll one line at a time (less "jumpy" than defaults)
-(setq redisplay-dont-pause t
-      scroll-margin 1
-      scroll-step 1
-      scroll-conservatively 100000
-      scroll-preserve-screen-position 1
-      scroll-up-aggressively 0.01
-      scroll-down-aggressively 0.01)
+;; (setq redisplay-dont-pause t
+;;       scroll-margin 150
+;;       scroll-step 150
+;;       scroll-conservatively 10000
+;;       scroll-preserve-screen-position 1
+;;       scroll-up-aggressively 0.01
+;;       scroll-down-aggressively 0.01)
 
-(setq-default scroll-up-aggressively 0.01
-              scroll-down-aggressively 0.01)
+;; keyboard scroll margin set
+(setq scroll-margin 100)
 
-(setq auto-window-vscroll nil)
+
+;; (setq-default scroll-up-aggressively 0.01
+;;               scroll-down-aggressively 0.01)
+
+;; (setq auto-window-vscroll nil)
+
+;; (require 'smooth-scroll)
+;; (smooth-scroll-mode t)
+;; (global-set-key [S-up] (lambda () (interactive) (scroll-down 20)))
+;; (global-set-key [S-down] (lambda () (interactive) (scroll-up 20)))
+;; (setq scroll-step 40) ;; keyboard scroll one line at a time
+
+;; (global-set-key [up] (lambda () (interactive) (scroll-down 10)))
+;; (global-set-key [down] (lambda () (interactive) (scroll-up 10)))
+
+;; (global-set-key [left] (lambda () (interactive) (scroll-right tab-width t)))
+;; (global-set-key [right] (lambda () (interactive) (scroll-left tab-width t)))
+
 
 ;; tab unindent set
 (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
@@ -197,6 +245,59 @@ by Prelude.")
 
 ;; bookmarklist (helm)
 (global-set-key (kbd "C-x r l") 'helm-bookmarks)
+
+(setq php-warned-bad-indent t)
+
+;B;(require 'php+-mode)
+;;(php+-mode-setup)
+
+;; php web modex
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+;(add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("/.*/views/.*\\.php?\\'" . web-mode))
+
+(setq web-mode-markup-indent-offset 4)
+(setq web-mode-css-indent-offset 4)
+(setq web-mode-code-indent-offset 4)
+(setq web-mode-script-padding 4)
+
+;; text edit ( duplicate line )
+(defun duplicate-line()
+  (interactive)
+  (move-beginning-of-line 1)
+  (kill-line)
+  (yank)
+  (open-line 1)
+  (next-line 1)
+  (yank)
+  )
+(global-set-key (kbd "C-d") 'duplicate-line)
+
+;; php doc
+(require 'php-doc)
+
+(add-hook 'php-mode-hook '(lambda ()
+                            (auto-complete-mode t)
+                            (require 'ac-php)
+                            (require 'company-php)
+                            (setq ac-sources  '(ac-source-php ) )
+                            (yas-global-mode 1)
+                            (company-mode t)
+                            (add-to-liost 'company-backends 'company-ac-php-backend)
+
+                            (define-key php-mode-map  (kbd "C-]") 'ac-php-find-symbol-at-point)   ;goto define
+                            (define-key php-mode-map  (kbd "C-t") 'ac-php-location-stack-back   ) ;go back
+                            (local-set-key (kbd "M-P") 'php-insert-doc-block)
+                            ))
+
 
 ;;(defun mp-display-message ()
   ;;(interactive)
