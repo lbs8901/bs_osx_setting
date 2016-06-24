@@ -269,6 +269,7 @@ by Prelude.")
                             (yas-global-mode 1)
                             (company-mode t)
                             (add-to-liost 'company-backends 'company-ac-php-backend)
+                            (`php-enable-default-coding-style)
 
                             (define-key php-mode-map  (kbd "C-]") 'ac-php-find-symbol-at-point)   ;goto define
                             (define-key php-mode-map  (kbd "C-t") 'ac-php-location-stack-back   ) ;go back
