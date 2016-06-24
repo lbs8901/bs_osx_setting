@@ -97,6 +97,14 @@ by Prelude.")
 
 (message "Loading Prelude's core...")
 
+(when (>= emacs-major-version 24)
+  (require 'package)
+  (add-to-list
+   'package-archives
+   '("melpa" . "http://melpa.org/packages/")
+   t)
+    (package-initialize))
+
 ;; the core stuff
 (require 'prelude-packages)
 (require 'prelude-custom)  ;; Needs to be loaded before core, editor and ui
@@ -106,7 +114,7 @@ by Prelude.")
 (require 'prelude-editor)
 (require 'prelude-global-keybindings)
 
-;; OSX specific settings
+;; osx specific settings
 (when (eq system-type 'darwin)
   (require 'prelude-osx))
 
@@ -150,11 +158,9 @@ by Prelude.")
 ;;(require 'nlinum)
 (require 'highlight-current-line)
 
-;; phpdocumentor
-;; (load "~/.emacs.d/plugins/phpdocumentor/phpdocumentor.el")
-
 (load "~/.emacs.d/custom_el/custom.el")
 (load "~/.emacs.d/custom_el/php-doc.el")
+(load "~/.emacs.d/custom_el/sql-indent.el")
 
 (autoload 'dirtree "dirtree" "Add directory to tree view" t)
 ;;(global-nlinum-mode nil)
@@ -190,43 +196,14 @@ by Prelude.")
                 (setq emmet-use-css-transform nil)))))
 
 ;; tab indent set
-(setq-default c-basic-offset 4
-              c-basic-indent 4
-              tab-width 4
+(setq-default tab-width 4
               indent-tabs-mode nil)
 
-(setq-default tab-always-indent nil)
-(setq-default c-always-indent nil)
-;; scroll one line at a time (less "jumpy" than defaults)
-;; (setq redisplay-dont-pause t
-;;       scroll-margin 150
-;;       scroll-step 150
-;;       scroll-conservatively 10000
-;;       scroll-preserve-screen-position 1
-;;       scroll-up-aggressively 0.01
-;;       scroll-down-aggressively 0.01)
+(setq-default tab-always-indent t)
+(setq-default c-always-indent t)
 
 ;; keyboard scroll margin set
 (setq scroll-margin 100)
-
-
-;; (setq-default scroll-up-aggressively 0.01
-;;               scroll-down-aggressively 0.01)
-
-;; (setq auto-window-vscroll nil)
-
-;; (require 'smooth-scroll)
-;; (smooth-scroll-mode t)
-;; (global-set-key [S-up] (lambda () (interactive) (scroll-down 20)))
-;; (global-set-key [S-down] (lambda () (interactive) (scroll-up 20)))
-;; (setq scroll-step 40) ;; keyboard scroll one line at a time
-
-;; (global-set-key [up] (lambda () (interactive) (scroll-down 10)))
-;; (global-set-key [down] (lambda () (interactive) (scroll-up 10)))
-
-;; (global-set-key [left] (lambda () (interactive) (scroll-right tab-width t)))
-;; (global-set-key [right] (lambda () (interactive) (scroll-left tab-width t)))
-
 
 ;; tab unindent set
 (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
@@ -248,7 +225,7 @@ by Prelude.")
 
 (setq php-warned-bad-indent t)
 
-;B;(require 'php+-mode)
+;;(require 'php+-mode)
 ;;(php+-mode-setup)
 
 ;; php web modex
@@ -296,16 +273,27 @@ by Prelude.")
                             (define-key php-mode-map  (kbd "C-]") 'ac-php-find-symbol-at-point)   ;goto define
                             (define-key php-mode-map  (kbd "C-t") 'ac-php-location-stack-back   ) ;go back
                             (local-set-key (kbd "M-P") 'php-insert-doc-block)
+                            (local-set-key (kbd "C-m") 'indent-relative)
                             ))
 
 
-;;(defun mp-display-message ()
-  ;;(interactive)
-    ;;; Place your code below this line, but inside the bracket.
-  ;;(insert "    ")
-  ;;)
+(defun custom_newline()
+  (interactive)
+  (newline)
+  (indent-relative)
+  )
 
-;; (global-set-key (kbd "C-q <tab>") 'mp-display-message)
-;;(define-key (current-global-map) (kbd "C-t") 'mp-display-message)
+
+(global-set-key (kbd "C-m") 'custom_newline)
+
+;; redisplay delay
+(setq redisplay-dont-pause t)
+
+;; (global-font-lock-mode t)
+;; (setq font-lock-maximum-decoration t
+;;       font-lock-maximum-size nil)
+;; (setq font-lock-support-mode 'fast-lock-mode ; lazy-lock-mode
+;;       fast-lock-cache-directories '("~/.emacs-flc"))
+
 
 ;;; init.el ends here
